@@ -1,43 +1,47 @@
 #!/bin/bash
 
-CORPORA="../team-lab-ss2015/data/pos"
+DATA_TRAIN_EN="/mount/studenten/dependency-parsing/data/english/train"
+DATA_DEV_EN="/mount/studenten/dependency-parsing/data/english/dev"
 
-train=0
-test=0
-evaluate=0
-tag=1
+DATA_TRAIN_DE="/mount/studenten/dependency-parsing/data/german/train"
+DATA_DEV_DE="/mount/studenten/dependency-parsing/data/german/dev"
 
-#head -20000 $CORPORA/train.col >> $CORPORA/train_top5000.col
-#head -20000 $CORPORA/dev.col >> $CORPORA/dev_top5000.col
+train=1
+test=1
+evaluate=1
 
+# Train the model
 if [ "$train" = 1 ]; then
-    #python -u tagger.py -train -i $CORPORA/train.col -e 5 -m model
-    #python -u tagger.py -train -i $CORPORA/train_top5000.col -t $p -e 5 -m $MODELS/model$COUNTER
-    python -u tagger.py -train -i $CORPORA/train.col -e 10 -m model -decrease-alpha -shuffle-tokens -batch-training
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -sentence-limit 1000 -e 5 -m model
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -sentence-limit 1000 -e 5 -m model -batch-training
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -sentence-limit 1000 -e 5 -m model -shuffle-sentences
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -sentence-limit 1000 -e 5 -m model -decrease-alpha
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -sentence-limit 1000 -e 5 -m model -decrease-alpha -shuffle-sentences
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -sentence-limit 1000 -e 5 -m model -decrease-alpha -batch-training
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -sentence-limit 1000 -e 5 -m model -shuffle-sentences -batch-training
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -sentence-limit 1000 -e 5 -m model -decrease-alpha -shuffle-sentences -batch-training
+    #
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -e 5 -m model
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -e 5 -m model -batch-training
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -e 5 -m model -shuffle-sentences
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -e 5 -m model -decrease-alpha
+    python -u tagger.py -train -i $DATA_TRAIN_DE/tiger-2.2.train.conll06 -e 10 -m model2 -decrease-alpha -shuffle-sentences
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -e 5 -m model -decrease-alpha -batch-training
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -e 5 -m model -shuffle-sentences -batch-training
+    #python -u tagger.py -train -i $DATA_TRAIN_EN/wsj_train.first-5k.conll06 -e 5 -m model -decrease-alpha -shuffle-sentences -batch-training
 fi
 
 # Test the model
 if [ "$test" = 1 ]; then
-    python -u tagger.py -test -i $CORPORA/dev.col -m model -o prediction.col
-    #python -u tagger.py -test -i $CORPORA/dev_top5000.col -m $MODELS/model$COUNTER -o $PREDICTIONS/prediction$COUNTER.col
-    #python tagger.py -test -i $CORPORA/dev_top5000.col -m model -o prediction.col
+    python -u tagger.py -test -i $DATA_DEV_DE/tiger-2.2.dev.conll06.blind -m model2 -o wsj_prediction.conll06.blind
 fi
 
 # Evaluate the results
 if [ "$evaluate" = 1 ]; then
-    python -u tagger.py -ev -i prediction.col -o evaluation.txt
+    ./eval07.pl -q -g $DATA_DEV_DE/tiger-2.2.dev.conll06.gold -s tiger-2.2.prediction.conll06.blind
+    #python -u tagger.py -ev -i prediction.col -o evaluation.txt
     #python -u tagger.py -ev -i $CORPORA/test_stuff/nn.col -o evaluation.txt
     #python -u tagger.py -ev -i $CORPORA/test_stuff/leer.col -o evaluation.txt
 fi
 
-# Test the model
-if [ "$tag" = 1 ]; then
-    python -u tagger.py -tag -i $CORPORA/test-nolabels.col -m model -o prediction.col
-    #python -u tagger.py -test -i $CORPORA/dev_top5000.col -m $MODELS/model$COUNTER -o $PREDICTIONS/prediction$COUNTER.col
-    #python tagger.py -test -i $CORPORA/dev_top5000.col -m model -o prediction.col
-fi
 
-# Tag plain text file
-
-#rm $CORPORA/train_top5000.col
-#rm $CORPORA/dev_top5000.col
